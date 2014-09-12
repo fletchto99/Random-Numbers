@@ -25,161 +25,166 @@ public class Randomness extends JApplet {
 	private JTextArea information;
 	private RandomNumberArray numbers = null;
 
+	private String formatMode() {
+		String mode = "The number"
+				+ (this.numbers.findMode().length > 2 ? "s " : "") + " that "
+				+ (this.numbers.findMode().length > 2 ? "have" : "has")
+				+ " the most "
+				+ (this.numbers.findMode().length > 2 ? "are " : "is ");
+		for (int i = 1; i < this.numbers.findMode().length; i++) {
+			mode += String.valueOf(this.numbers.findMode()[i]);
+			if (i < this.numbers.findMode().length - 1) {
+				mode += ", ";
+			}
+		}
+		mode += " with "
+				+ (this.numbers.findMode().length > 2 ? "each" : "it")
+				+ " being selected "
+				+ String.valueOf(this.numbers.findMode()[0])
+				+ " time"
+				+ (this.numbers.findMode()[0] > 1 ? "s " : "")
+				+ " which is worth "
+				+ new DecimalFormat("#,##0.0").format(this.percentage(
+						this.numbers.findMode()[0]
+								* (this.numbers.findMode().length - 1),
+						this.numbers.total())) + "%";
+		return mode;
+	}
+
 	@Override
 	public void init() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(UIManager
-							.getSystemLookAndFeelClassName());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				JFrame.setDefaultLookAndFeelDecorated(true);
-				setSize(720, 770);
-
-				scrollPane1 = new JScrollPane();
-				scrollPane2 = new JScrollPane();
-				scrollPane3 = new JScrollPane();
-				input = new JTextPane();
-				table = new JTable();
-				information = new JTextArea();
-
-				Container contentPane = getContentPane();
-				contentPane.setLayout(null);
-
-				input.addKeyListener(new KeyListener() {
-
-					@Override
-					public void keyPressed(KeyEvent arg0) {
+		SwingUtilities
+				.invokeLater(() -> {
+					try {
+						UIManager.setLookAndFeel(UIManager
+								.getSystemLookAndFeelClassName());
+					} catch (final Exception e) {
+						e.printStackTrace();
 					}
+					JFrame.setDefaultLookAndFeelDecorated(true);
+					Randomness.this.setSize(720, 770);
 
-					@Override
-					public void keyReleased(KeyEvent arg0) {
-						if (input.getText().length() > 0) {
-							numbers = new RandomNumberArray(input.getText());
-						} else {
-							numbers = null;
+					Randomness.this.scrollPane1 = new JScrollPane();
+					Randomness.this.scrollPane2 = new JScrollPane();
+					Randomness.this.scrollPane3 = new JScrollPane();
+					Randomness.this.input = new JTextPane();
+					Randomness.this.table = new JTable();
+					Randomness.this.information = new JTextArea();
+
+					final Container contentPane = Randomness.this
+							.getContentPane();
+					contentPane.setLayout(null);
+
+					Randomness.this.input.addKeyListener(new KeyListener() {
+
+						@Override
+						public void keyPressed(final KeyEvent arg0) {
 						}
-						populateTable();
-						updateInformation();
-					}
 
-					@Override
-					public void keyTyped(KeyEvent arg0) {
-					}
+						@Override
+						public void keyReleased(final KeyEvent arg0) {
+							if (Randomness.this.input.getText().length() > 0) {
+								Randomness.this.numbers = new RandomNumberArray(
+										Randomness.this.input.getText());
+							} else {
+								Randomness.this.numbers = null;
+							}
+							Randomness.this.populateTable();
+							Randomness.this.updateInformation();
+						}
+
+						@Override
+						public void keyTyped(final KeyEvent arg0) {
+						}
+
+					});
+					Randomness.this.scrollPane1
+							.setViewportView(Randomness.this.input);
+					contentPane.add(Randomness.this.scrollPane1);
+					Randomness.this.scrollPane1.setBounds(15, 20, 675, 185);
+
+					((DefaultTableModel) Randomness.this.table.getModel())
+							.addColumn("Number");
+					((DefaultTableModel) Randomness.this.table.getModel())
+							.addColumn("Amount");
+					Randomness.this.scrollPane2
+							.setViewportView(Randomness.this.table);
+					contentPane.add(Randomness.this.scrollPane2);
+					Randomness.this.scrollPane2.setBounds(15, 210, 675, 285);
+
+					Randomness.this.information.setLineWrap(true);
+					Randomness.this.information.setWrapStyleWord(true);
+					Randomness.this.information.setEditable(false);
+					Randomness.this.information.setFont(new Font("Tahoma", 0,
+							20));
+					Randomness.this.information
+							.setText("Please insert some values in the text box above. To seprate values use a single space.");
+					Randomness.this.scrollPane3
+							.setViewportView(Randomness.this.information);
+					contentPane.add(Randomness.this.scrollPane3);
+					Randomness.this.scrollPane3.setBounds(15, 505, 675, 220);
 
 				});
-				scrollPane1.setViewportView(input);
-				contentPane.add(scrollPane1);
-				scrollPane1.setBounds(15, 20, 675, 185);
+	}
 
-				((DefaultTableModel) table.getModel()).addColumn("Number");
-				((DefaultTableModel) table.getModel()).addColumn("Amount");
-				scrollPane2.setViewportView(table);
-				contentPane.add(scrollPane2);
-				scrollPane2.setBounds(15, 210, 675, 285);
-
-				information.setLineWrap(true);
-				information.setWrapStyleWord(true);
-				information.setEditable(false);
-				information.setFont(new Font("Tahoma", 0, 20));
-				information
-						.setText("Please insert some values in the text box above. To seprate values use a single space.");
-				scrollPane3.setViewportView(information);
-				contentPane.add(scrollPane3);
-				scrollPane3.setBounds(15, 505, 675, 220);
-
-			}
-		});
+	private double percentage(final double number, final double total) {
+		return number / total * 100;
 	}
 
 	public void populateTable() {
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		final DefaultTableModel model = (DefaultTableModel) this.table
+				.getModel();
 		for (int i = model.getRowCount() - 1; i >= 0; i--) {
 			model.removeRow(i);
 		}
-		if (numbers != null) {
-			for (int i : numbers.getNumberArray()) {
+		if (this.numbers != null) {
+			for (final int i : this.numbers.getNumberArray()) {
 				model.addRow(new Object[] { String.valueOf(i),
-						String.valueOf(numbers.getAmount(i)) });
+						String.valueOf(this.numbers.getAmount(i)) });
 			}
 		}
 	}
 
 	private void updateInformation() {
-		if (numbers != null) {
-			information
-					.setText(formatMode()
-							+ ". The average number is "
-							+ new DecimalFormat("#,##0.0").format(numbers
-									.findAverage())
-							+ ". The ratio of evens to odds is "
-							+ numbers.evenCount()
-							+ ":"
-							+ numbers.oddCount()
-							+ " where even numbers make up "
-							+ new DecimalFormat("#,##0.0").format(percentage(
-									numbers.evenCount(), numbers.total()))
-							+ "% and odds make up "
-							+ new DecimalFormat("#,##0.0").format(percentage(
-									numbers.oddCount(), numbers.total()))
-							+ "%. The ratio of prime numbers to non-prime numbers is "
-							+ numbers.primeCount()
-							+ ":"
-							+ (numbers.total() - numbers.primeCount())
-							+ " where prime numbers make up "
-							+ new DecimalFormat("#,##0.0").format(percentage(
-									numbers.primeCount(), numbers.total()))
-							+ "% and non-prime numbers make up "
-							+ new DecimalFormat("#,##0.0").format(percentage(
-									(numbers.total() - numbers.primeCount()),
-									numbers.total()))
-							+ "%. The total amount of numbers tested is "
-							+ numbers.total()
-							+ " which has a range of "
-							+ numbers.range()
-							+ " numbers with "
-							+ numbers.getNumberArray().get(0)
-							+ " being the lowest number and "
-							+ numbers.getNumberArray().get(
-									numbers.getNumberArray().size() - 1)
-							+ " being the highest number.");
+		if (this.numbers != null) {
+			this.information.setText(this.formatMode()
+					+ ". The average number is "
+					+ new DecimalFormat("#,##0.0").format(this.numbers
+							.findAverage())
+					+ ". The ratio of evens to odds is "
+					+ this.numbers.evenCount()
+					+ ":"
+					+ this.numbers.oddCount()
+					+ " where even numbers make up "
+					+ new DecimalFormat("#,##0.0").format(this.percentage(
+							this.numbers.evenCount(), this.numbers.total()))
+					+ "% and odds make up "
+					+ new DecimalFormat("#,##0.0").format(this.percentage(
+							this.numbers.oddCount(), this.numbers.total()))
+					+ "%. The ratio of prime numbers to non-prime numbers is "
+					+ this.numbers.primeCount()
+					+ ":"
+					+ (this.numbers.total() - this.numbers.primeCount())
+					+ " where prime numbers make up "
+					+ new DecimalFormat("#,##0.0").format(this.percentage(
+							this.numbers.primeCount(), this.numbers.total()))
+					+ "% and non-prime numbers make up "
+					+ new DecimalFormat("#,##0.0").format(this.percentage(
+							(this.numbers.total() - this.numbers.primeCount()),
+							this.numbers.total()))
+					+ "%. The total amount of numbers tested is "
+					+ this.numbers.total()
+					+ " which has a range of "
+					+ this.numbers.range()
+					+ " numbers with "
+					+ this.numbers.getNumberArray().get(0)
+					+ " being the lowest number and "
+					+ this.numbers.getNumberArray().get(
+							this.numbers.getNumberArray().size() - 1)
+					+ " being the highest number.");
 		} else {
-			information
-					.setText("Please insert some values in the text box above. To seprate values use a single space.");
+			this.information
+			.setText("Please insert some values in the text box above. To seprate values use a single space.");
 		}
-	}
-
-	private String formatMode() {
-		String mode = "The number"
-				+ (numbers.findMode().length > 2 ? "s " : "") + " that "
-				+ (numbers.findMode().length > 2 ? "have" : "has")
-				+ " the most "
-				+ (numbers.findMode().length > 2 ? "are " : "is ");
-		for (int i = 1; i < numbers.findMode().length; i++) {
-			mode += String.valueOf(numbers.findMode()[i]);
-			if (i < numbers.findMode().length - 1) {
-				mode += ", ";
-			}
-		}
-		mode += " with "
-				+ (numbers.findMode().length > 2 ? "each" : "it")
-				+ " being selected "
-				+ String.valueOf(numbers.findMode()[0])
-				+ " time"
-				+ (numbers.findMode()[0] > 1 ? "s " : "")
-				+ " which is worth "
-				+ new DecimalFormat("#,##0.0")
-						.format(percentage(
-								numbers.findMode()[0]
-										* (numbers.findMode().length - 1),
-								numbers.total())) + "%";
-		return mode;
-	}
-
-	private double percentage(double number, double total) {
-		return number / total * 100;
 	}
 }
